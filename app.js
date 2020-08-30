@@ -7,17 +7,18 @@ let app = express();
 
 app.get('/',function(req, res, next) {
 	superagent
-		.get('https://www.rails365.net/playlists/nodejs-express-shi-xian-duo-yong-hu-bo-ke-xi-tong')
+		.get('https://music.163.com/playlist?id=2428862170&userid=91119193')
 		.end((err,sres)=>{
 			if (err) { return next(err);}
-			// console.dir(sres);
 			let $ = cheerio.load(sres.text);
 			let urls = [];
 			// console.dir($.html());
-			$('.video-box .title .real-ray').each(function(index, element) {
+			$('ul.f-hide li a').each(function(index, element) {
+				console.dir(element.attribs.href);
+
 				urls.push(element.attribs.href);
-				let content = fs.readFileSync('urls.txt', 'utf-8');
-				fs.writeFileSync('urls.txt', content+'\n'+element.attribs.href, 'utf-8');
+				let content = fs.readFileSync(__dirname+'/urls.txt', 'utf-8');
+				fs.writeFileSync(__dirname+'/urls.txt', content+'\n'+element.attribs.href, 'utf-8');
 			});
 			res.json(urls);
 		})
@@ -25,12 +26,12 @@ app.get('/',function(req, res, next) {
 
 //下载视频
 app.get('/download',function(req, res, next) {
-	let dirPath = './videos';
+	let dirPath = __dirname+'/videos';
 	if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath);
     }
 
-	let urls = fs.readFileSync('urls.txt', 'utf-8');
+	let urls = fs.readFileSync(__dirname+'/urls.txt', 'utf-8');
 	let base_url = 'https://www.rails365.net'
 	urls = urls.split('\n');
 	// console.log(urls);
@@ -57,7 +58,7 @@ app.get('/download',function(req, res, next) {
 					// console.log(video_url);
 
 					try{
-						var writeStream = fs.createWriteStream('./videos/'+index+'.mp4');
+						var writeStream = fs.createWriteStream(__dirname+'/videos/'+index+'.mp4');
 						    writeStream.on('close', function() {
 						        console.log(index+'.mp4');
 						    })
